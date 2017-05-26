@@ -32,7 +32,7 @@ endfunction
 
 function! SyntaxCheckers_php_phan_GetLocList() dict
 
-    let a:args = "-k ".g:phanConfig
+    let a:args = "-k ".g:phpqa_phan_config
 
     let makeprg = self.makeprgBuild({
                 \ 'args': a:args })
