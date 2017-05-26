@@ -477,6 +477,7 @@ function! s:CacheErrors(buf, checker_names) abort " {{{2
 
         let names = []
         let unavailable_checkers = 0
+        let g:asyncSyntasticCheckers = clist
         for checker in clist
             let cname = checker.getCName()
             if !checker.isAvailable()
@@ -791,5 +792,18 @@ function! s:_os_name() abort " {{{2
 endfunction " }}}2
 
 " }}}1
+
+function! AsyncSyntasticCheck()
+    if !exists("g:asyncSyntasticCheckersCnt")
+        let g:asyncSyntasticCheckersCnt=1
+    else
+        let g:asyncSyntasticCheckersCnt += 1
+    endif
+    if g:asyncSyntasticCheckersCnt==len(g:asyncSyntasticCheckers)
+        unlet g:asyncSyntasticCheckersCnt
+        call SyntasticCheck()
+        redrawstatus
+    endif
+endfunction
 
 " vim: set sw=4 sts=4 et fdm=marker:
