@@ -802,7 +802,6 @@ function! AsyncSyntasticCheck()
     if g:asyncSyntasticCheckersCnt==len(g:asyncSyntasticCheckers)
         unlet g:asyncSyntasticCheckersCnt
         call SyntasticCheck()
-        redrawstatus
     endif
 endfunction
 
