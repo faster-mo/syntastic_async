@@ -55,17 +55,16 @@ function! syntastic#util#system(command) abort " {{{2
         else
             let job_opt = {}
             let job_opt.out_io = 'pipe'
-            let job_opt.err_mode = 'nl'
             let job_opt.in_io = 'null'
             let job_opt.err_io = 'pipe'
             let job_opt.err_mode = 'raw'
             let job_opt.timeout = 50000
             let job_opt.err_timeout = 50000
-            let job_opt.out_cb = function({outKey, job, message -> execute("
+            let job_opt.out_cb = function({key, job, message -> execute("
                         \ | if strlen(message)>0
-                        \ |     let g:{outKey} += [message]
+                        \ |     let g:{key} += [message]
                         \ | endif
-                        \ ", "")}, [outKey])
+                        \ ", "silent")}, [outKey])
             let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
             let job_opt.exit_cb = {job, status -> AsyncSyntasticCheck()}
 
