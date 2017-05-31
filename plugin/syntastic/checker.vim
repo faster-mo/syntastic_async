@@ -94,7 +94,7 @@ function! g:SyntasticChecker.getExecEscaped() abort " {{{2
     return syntastic#util#shescape(self._exec)
 endfunction " }}}2
 
-function! g:SyntasticChecker.getLocListRaw() abort " {{{2
+function! g:SyntasticChecker.getLocListRaw(...) abort " {{{2
     let checker_start = reltime()
     let name = self.getCName()
 

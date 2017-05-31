@@ -28,7 +28,7 @@ function! syntastic#util#CygwinPath(path) abort " {{{2
     return substitute(syntastic#util#system('cygpath -m ' . syntastic#util#shescape(a:path)), "\n", '', 'g')
 endfunction " }}}2
 
-function! syntastic#util#system(command) abort " {{{2
+function! syntastic#util#system(command, ...) abort " {{{2
     let old_shell = &shell
     let old_lc_messages = $LC_MESSAGES
     let old_lc_all = $LC_ALL
@@ -37,6 +37,7 @@ function! syntastic#util#system(command) abort " {{{2
     let $LC_MESSAGES = 'C'
     let $LC_ALL = ''
 
+    let l:async = exists('a:1') ? a:1 : 0
     let crashed = 0
     let cmd_start = reltime()
     try
@@ -45,14 +46,13 @@ function! syntastic#util#system(command) abort " {{{2
         let outKey = prefix."out".hash
         let syntasticJob = prefix."job".hash
 
-        if !exists('g:'.outKey)
-            let g:{outKey} = []
-        endif
-        let out = ''
-        if len(g:{outKey})>0
+        if l:async<1
+            let out = system(a:command)
+        elseif l:async==1
             let out = join(g:{outKey}, "\n")
-            unlet g:{outKey}
+            " unlet! g:{outKey} g:{syntasticJob}
         else
+            let g:{outKey} = []
             let job_opt = {}
             let job_opt.out_io = 'pipe'
             let job_opt.in_io = 'null'
@@ -62,11 +62,15 @@ function! syntastic#util#system(command) abort " {{{2
             let job_opt.err_timeout = 50000
             let job_opt.out_cb = function({key, job, message -> execute("
                         \ | if strlen(message)>0
-                        \ |     let g:{key} += [message]
-                        \ | endif
+                            \ |     let g:{key} += [message]
+                            \ | endif
                         \ ", "silent")}, [outKey])
             let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
-            let job_opt.exit_cb = {job, status -> AsyncSyntasticCheck()}
+            if l:async==3
+                let job_opt.exit_cb = {job, status -> SyntasticCheck(1)}
+            else 
+                let job_opt.exit_cb = ''
+            endif
 
             if !exists('g:'.syntasticJob)
                 let g:{syntasticJob} = ''
@@ -81,8 +85,8 @@ function! syntastic#util#system(command) abort " {{{2
             if job_status(g:{syntasticJob})=='fail'
                 throw 'job start fail'
             endif
+            let out = ''
         endif
-        " let out = system(a:command)
     catch
         let crashed = 1
         call syntastic#log#error('exception running system(' . string(a:command) . '): ' . v:exception)
