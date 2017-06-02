@@ -37,7 +37,7 @@ function! syntastic#util#system(command, ...) abort " {{{2
     let $LC_MESSAGES = 'C'
     let $LC_ALL = ''
 
-    let l:async = exists('a:1') ? a:1 : 0
+    let l:asyncStep = exists('a:1') ? a:1 : 0
     let crashed = 0
     let cmd_start = reltime()
     try
@@ -46,9 +46,9 @@ function! syntastic#util#system(command, ...) abort " {{{2
         let outKey = prefix."out".hash
         let syntasticJob = prefix."job".hash
 
-        if l:async<1
+        if l:asyncStep<1
             let out = system(a:command)
-        elseif l:async==1
+        elseif l:asyncStep==3
             let out = join(g:{outKey}, "\n")
             " unlet! g:{outKey} g:{syntasticJob}
         else
@@ -66,8 +66,8 @@ function! syntastic#util#system(command, ...) abort " {{{2
                             \ | endif
                         \ ", "silent")}, [outKey])
             let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
-            if l:async==3
-                let job_opt.exit_cb = {job, status -> SyntasticCheck(1)}
+            if l:asyncStep==2
+                let job_opt.exit_cb = {job, status -> SyntasticCheck(3)}
             else 
                 let job_opt.exit_cb = ''
             endif

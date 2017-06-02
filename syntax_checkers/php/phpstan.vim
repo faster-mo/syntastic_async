@@ -33,10 +33,12 @@ function! SyntaxCheckers_php_phpstan_GetLocList() dict
 
     let errorformat = '%f:%l:%m'
 
+    let asyncStep = self._asyncStep
     return SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
-        \ 'subtype' : 'Style' })
+        \ 'subtype' : 'Style',
+        \ 'asyncStep': asyncStep})
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({

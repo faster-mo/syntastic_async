@@ -36,12 +36,12 @@ function! SyntaxCheckers_php_php_GetLocList() dict
         \ '%-G\s%#,'.
         \ '%-GErrors parsing %.%#'
 
-    let async = self._async
+    let asyncStep = self._asyncStep
     return SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
         \ 'postprocess': ['guards'],
-        \ 'async': async})
+        \ 'asyncStep': asyncStep})
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({

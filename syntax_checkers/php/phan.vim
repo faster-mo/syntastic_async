@@ -39,12 +39,12 @@ function! SyntaxCheckers_php_phan_GetLocList() dict
     let errorformat = '%f:%l\ Phan%m'
     let env = { }
 
-    let async = self._async
+    let asyncStep = self._asyncStep
     return SyntasticMake({
                 \ 'makeprg': makeprg,
                 \ 'errorformat': errorformat,
                 \ 'env': env,
-                \ 'async': async })
+                \ 'asyncStep': asyncStep })
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({

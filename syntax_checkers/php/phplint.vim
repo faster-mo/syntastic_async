@@ -66,12 +66,14 @@ function! SyntaxCheckers_php_phplint_GetLocList() dict
         \ '%+C%\t%.%#,' .
         \ '%-G%.%#'
 
+    let asyncStep = self._asyncStep
     let loclist = SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
         \ 'postprocess': ['compressWhitespace'],
         \ 'subtype': 'Style',
-        \ 'returns': [0, 1] })
+        \ 'returns': [0, 1],
+        \ 'asyncStep': asyncStep})
 
     for e in loclist
         let e['text'] = substitute(e['text'], '\m \(Hint\|Examples\):.*', '', '')

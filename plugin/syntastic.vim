@@ -218,7 +218,7 @@ endfunction " }}}2
 " @vimlint(EVL103, 0, a:cmdLine)
 " @vimlint(EVL103, 0, a:argLead)
 
-command! -bar -nargs=* -complete=custom,s:CompleteCheckerName SyntasticCheck call SyntasticCheck(2, <f-args>)
+command! -bar -nargs=* -complete=custom,s:CompleteCheckerName SyntasticCheck call SyntasticCheck(1, <f-args>)
 command! -bar -nargs=? -complete=custom,s:CompleteFiletypes   SyntasticInfo  call SyntasticInfo(<f-args>)
 command! -bar Errors              call SyntasticErrors()
 command! -bar SyntasticReset      call SyntasticReset()
@@ -232,8 +232,8 @@ command! SyntasticJavacEditConfig    runtime! syntax_checkers/java/*.vim | Synta
 
 " Public API {{{1
 
-function! SyntasticCheck(async, ...) abort " {{{2
-    call s:UpdateErrors(bufnr(''), 0, a:000, a:async)
+function! SyntasticCheck(asyncStep, ...) abort " {{{2
+    call s:UpdateErrors(bufnr(''), 0, a:000, a:asyncStep)
     call syntastic#util#redraw(g:syntastic_full_redraws)
 endfunction " }}}2
 
@@ -310,7 +310,7 @@ function! s:BufWritePostHook(fname) abort " {{{2
     let buf = syntastic#util#fname2buf(a:fname)
     call syntastic#log#debug(g:_SYNTASTIC_DEBUG_AUTOCOMMANDS,
         \ 'autocmd: BufWritePost, buffer ' . buf . ' = ' . string(a:fname))
-    call s:UpdateErrors(buf, 1, [], 2)
+    call s:UpdateErrors(buf, 1, [], 1)
 endfunction " }}}2
 
 function! s:BufEnterHook(fname) abort " {{{2
@@ -384,7 +384,7 @@ endfunction " }}}2
 
 "refresh and redraw all the error info for this buf when saving or reading
 function! s:UpdateErrors(buf, auto_invoked, checker_names, ...) abort " {{{2
-    let l:async = exists('a:1') ? a:1 : 0
+    let l:asyncStep = exists('a:1') ? a:1 : 0
     call syntastic#log#debugShowVariables(g:_SYNTASTIC_DEBUG_TRACE, 'version')
     call syntastic#log#debugShowOptions(g:_SYNTASTIC_DEBUG_TRACE, g:_SYNTASTIC_SHELL_OPTIONS)
     call syntastic#log#debugDump(g:_SYNTASTIC_DEBUG_VARIABLES)
@@ -399,7 +399,7 @@ function! s:UpdateErrors(buf, auto_invoked, checker_names, ...) abort " {{{2
 
     let run_checks = !a:auto_invoked || s:modemap.doAutoChecking(a:buf)
     if run_checks
-        call s:CacheErrors(a:buf, a:checker_names, l:async)
+        call s:CacheErrors(a:buf, a:checker_names, l:asyncStep)
         call syntastic#util#setLastTick(a:buf)
     elseif a:auto_invoked
         return
@@ -450,7 +450,7 @@ endfunction " }}}2
 
 "detect and cache all syntax errors in this buffer
 function! s:CacheErrors(buf, checker_names, ...) abort " {{{2
-    let l:async = exists('a:1') ? a:1 : 0
+    let l:asyncStep = exists('a:1') ? a:1 : 0
     call syntastic#log#debug(g:_SYNTASTIC_DEBUG_TRACE, 'CacheErrors: ' .
         \ (len(a:checker_names) ? join(a:checker_names) : 'default checkers'))
     call s:ClearCache(a:buf)
@@ -492,7 +492,7 @@ function! s:CacheErrors(buf, checker_names, ...) abort " {{{2
             call syntastic#log#debug(g:_SYNTASTIC_DEBUG_TRACE, 'CacheErrors: Invoking checker: ' . cname)
 
             let idx += 1
-            let checker._async = (l:async!=1 && cntClist==idx) ? 3 : l:async
+            let checker._asyncStep = (l:asyncStep!=3 && cntClist==idx) ? 2 : l:asyncStep
             let loclist = checker.getLocList()
 
             if !loclist.isEmpty()
@@ -599,8 +599,8 @@ function! SyntasticMake(options) abort " {{{2
     endif
     " }}}3
     "
-    let l:async = has_key(a:options, 'async') ? a:options['async'] : 0
-    let err_lines = split(syntastic#util#system(a:options['makeprg'], l:async), "\n", 1)
+    let l:asyncStep = has_key(a:options, 'asyncStep') ? a:options['asyncStep'] : 0
+    let err_lines = split(syntastic#util#system(a:options['makeprg'], l:asyncStep), "\n", 1)
 
     " restore environment variables {{{3
     if len(env_save)
