@@ -218,7 +218,7 @@ endfunction " }}}2
 " @vimlint(EVL103, 0, a:cmdLine)
 " @vimlint(EVL103, 0, a:argLead)
 
-command! -bar -nargs=* -complete=custom,s:CompleteCheckerName SyntasticCheck call SyntasticCheck(<f-args>)
+command! -bar -nargs=* -complete=custom,s:CompleteCheckerName SyntasticCheck call SyntasticCheck(0, <f-args>)
 command! -bar -nargs=? -complete=custom,s:CompleteFiletypes   SyntasticInfo  call SyntasticInfo(<f-args>)
 command! -bar Errors              call SyntasticErrors()
 command! -bar SyntasticReset      call SyntasticReset()
@@ -232,7 +232,7 @@ command! SyntasticJavacEditConfig    runtime! syntax_checkers/java/*.vim | Synta
 
 " Public API {{{1
 
-function! SyntasticCheck(...) abort " {{{2
+function! SyntasticCheck(async, ...) abort " {{{2
     call s:UpdateErrors(bufnr(''), 0, a:000)
     call syntastic#util#redraw(g:syntastic_full_redraws)
 endfunction " }}}2
@@ -594,7 +594,7 @@ function! SyntasticMake(options) abort " {{{2
     endif
     " }}}3
 
-    let err_lines = split(syntastic#util#system(a:options['makeprg']), "\n", 1)
+    let err_lines = split(syntastic#util#system(a:options['makeprg'], 1), "\n", 1)
 
     " restore environment variables {{{3
     if len(env_save)
