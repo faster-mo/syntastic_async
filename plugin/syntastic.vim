@@ -598,7 +598,6 @@ function! SyntasticMake(options) abort " {{{2
         endfor
     endif
     " }}}3
-    "
 
     let err_lines = split(syntastic#util#system(a:options['makeprg']), "\n", 1)
 
