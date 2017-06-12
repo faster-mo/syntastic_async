@@ -37,8 +37,7 @@ function! SyntaxCheckers_php_phpstan_GetLocList() dict
     return SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
-        \ 'subtype' : 'Style',
-        \ 'asyncStep': asyncStep})
+        \ 'subtype' : 'Style' })
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({

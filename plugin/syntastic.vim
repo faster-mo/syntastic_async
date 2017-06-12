@@ -279,12 +279,12 @@ augroup END
 if g:syntastic_nested_autocommands
     augroup syntastic
         autocmd BufReadPost  * nested call s:BufReadPostHook(expand('<afile>', 1))
-        autocmd BufWritePost * nested call s:BufWritePostHook(expand('<afile>', 1))
+        autocmd BufWritePost * nested call s:BufWritePostHook(expand('<afile>', 1), 1)
     augroup END
 else
     augroup syntastic
         autocmd BufReadPost  * call s:BufReadPostHook(expand('<afile>', 1))
-        autocmd BufWritePost * call s:BufWritePostHook(expand('<afile>', 1))
+        autocmd BufWritePost * call s:BufWritePostHook(expand('<afile>', 1), 1)
     augroup END
 endif
 
@@ -306,11 +306,11 @@ function! s:BufReadPostHook(fname) abort " {{{2
     endif
 endfunction " }}}2
 
-function! s:BufWritePostHook(fname) abort " {{{2
+function! s:BufWritePostHook(fname, asyncStep) abort " {{{2
     let buf = syntastic#util#fname2buf(a:fname)
     call syntastic#log#debug(g:_SYNTASTIC_DEBUG_AUTOCOMMANDS,
         \ 'autocmd: BufWritePost, buffer ' . buf . ' = ' . string(a:fname))
-    call s:UpdateErrors(buf, 1, [], 1)
+    call s:UpdateErrors(buf, 1, [], a:asyncStep)
 endfunction " }}}2
 
 function! s:BufEnterHook(fname) abort " {{{2
@@ -599,8 +599,8 @@ function! SyntasticMake(options) abort " {{{2
     endif
     " }}}3
     "
-    let l:asyncStep = has_key(a:options, 'asyncStep') ? a:options['asyncStep'] : 0
-    let err_lines = split(syntastic#util#system(a:options['makeprg'], l:asyncStep), "\n", 1)
+
+    let err_lines = split(syntastic#util#system(a:options['makeprg']), "\n", 1)
 
     " restore environment variables {{{3
     if len(env_save)

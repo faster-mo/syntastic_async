@@ -28,7 +28,7 @@ function! syntastic#util#CygwinPath(path) abort " {{{2
     return substitute(syntastic#util#system('cygpath -m ' . syntastic#util#shescape(a:path)), "\n", '', 'g')
 endfunction " }}}2
 
-function! syntastic#util#system(command, ...) abort " {{{2
+function! syntastic#util#system(command) abort " {{{2
     let old_shell = &shell
     let old_lc_messages = $LC_MESSAGES
     let old_lc_all = $LC_ALL
@@ -37,17 +37,24 @@ function! syntastic#util#system(command, ...) abort " {{{2
     let $LC_MESSAGES = 'C'
     let $LC_ALL = ''
 
-    let l:asyncStep = exists('a:1') ? a:1 : 0
+    if type(a:command)==type({})
+        let l:asyncStep = has_key(a:command, 'asyncStep') ? a:command['asyncStep'] : 0
+        let command = a:command['makeprg']
+    elseif
+        let l:asyncStep = 0
+        let command = a:command
+    endif
+
     let crashed = 0
     let cmd_start = reltime()
     try
         let prefix = 'AsyncSyntastic_'
-        let hash = sha256(a:command)
+        let hash = sha256(command)
         let outKey = prefix."out".hash
         let syntasticJob = prefix."job".hash
 
         if l:asyncStep<1
-            let out = system(a:command)
+            let out = system(command)
         elseif l:asyncStep==3
             let out = join(g:{outKey}, "\n")
             " unlet! g:{outKey} g:{syntasticJob}
@@ -68,7 +75,7 @@ function! syntastic#util#system(command, ...) abort " {{{2
             let job_opt.err_cb = {job, message -> execute("redraw \| echom ".string(message), "")}
             if l:asyncStep==2
                 let job_opt.exit_cb = {job, status -> SyntasticCheck(3)}
-            else 
+            else
                 let job_opt.exit_cb = ''
             endif
 
@@ -80,7 +87,7 @@ function! syntastic#util#system(command, ...) abort " {{{2
                 endif
             endif
             let job_command = [&shell, &shellcmdflag]
-            let job_command += [a:command]
+            let job_command += [command]
             let g:{syntasticJob} = job_start(job_command, job_opt)
             if job_status(g:{syntasticJob})=='fail'
                 throw 'job start fail'
@@ -89,7 +96,7 @@ function! syntastic#util#system(command, ...) abort " {{{2
         endif
     catch
         let crashed = 1
-        call syntastic#log#error('exception running system(' . string(a:command) . '): ' . v:exception)
+        call syntastic#log#error('exception running system(' . string(command) . '): ' . v:exception)
         if syntastic#util#isRunningWindows()
             call syntastic#log#debug(g:_SYNTASTIC_DEBUG_CHECKERS, '$TMP = ' . string($TMP) . ', $TEMP = ' . string($TEMP))
         else

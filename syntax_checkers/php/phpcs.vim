@@ -25,12 +25,10 @@ function! SyntaxCheckers_php_phpcs_GetLocList() dict
         \ '%-GFile\,Line\,Column\,Type\,Message\,Source\,Severity%.%#,'.
         \ '"%f"\,%l\,%c\,%t%*[a-zA-Z]\,"%m"\,%*[a-zA-Z0-9_.-]\,%*[0-9]%.%#'
 
-    let asyncStep = self._asyncStep
     return SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
-        \ 'subtype': 'Style',
-        \ 'asyncStep': asyncStep})
+        \ 'subtype': 'Style' })
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({
