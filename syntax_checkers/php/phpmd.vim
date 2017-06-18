@@ -61,6 +61,7 @@ function! SyntaxCheckers_php_phpmd_GetLocList() dict
 
     let errorformat = '%E%f:%l%\s%#%m'
 
+    let asyncStep = self._asyncStep
     return SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,

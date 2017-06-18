@@ -39,22 +39,50 @@ function! syntastic#util#system(command, ...) abort " {{{2
     let $LC_MESSAGES = 'C'
     let $LC_ALL = ''
 
+    if type(a:command)==type({})
+        let l:asyncStep = has_key(a:command, 'asyncStep') ? a:command['asyncStep'] : 0
+        let command = a:command['makeprg']
+    elseif
+        let l:asyncStep = 0
+        let command = a:command
+    endif
+
     let crashed = 0
     let cmd_start = reltime()
     try
-        if async
-            let prefix = 'AsyncSyntastic_'
-            let hash = sha256(a:command)
-            let outKey = prefix."out".hash
-            let syntasticJob = prefix."job".hash
+        let prefix = 'AsyncSyntastic_'
+        let hash = sha256(command)
+        let outKey = prefix."out".hash
+        let syntasticJob = prefix."job".hash
 
-            if !exists('g:'.outKey)
-                let g:{outKey} = []
+        if l:asyncStep<1
+            let out = system(command)
+        elseif l:asyncStep==3
+            let out = join(g:{outKey}, "\n")
+            " unlet! g:{outKey} g:{syntasticJob}
+        else
+            let g:{outKey} = []
+            let job_opt = {}
+            let job_opt.out_io = 'pipe'
+            let job_opt.in_io = 'null'
+            let job_opt.err_io = 'pipe'
+            let job_opt.err_mode = 'raw'
+            let job_opt.timeout = 50000
+            let job_opt.err_timeout = 50000
+            let job_opt.out_cb = function({key, job, message -> execute("
+                        \ | if strlen(message)>0
+                        \ |     let g:{key} += [message]
+                        \ | endif
+                        \ ", "silent")}, [outKey])
+            let job_opt.err_cb = {job, message -> execute("redraw \| echom ".string(message), "")}
+            if l:asyncStep==2
+                let job_opt.exit_cb = {job, status -> SyntasticCheck(3)}
+            else
+                let job_opt.exit_cb = ''
             endif
-            let out = ''
-            if len(g:{outKey})>0
-                let out = join(g:{outKey}, "\n")
-                unlet g:{outKey}
+
+            if !exists('g:'.syntasticJob)
+                let g:{syntasticJob} = ''
             else
                 let job_opt = {}
                 let job_opt.out_io = 'pipe'
@@ -85,12 +113,17 @@ function! syntastic#util#system(command, ...) abort " {{{2
                     throw 'job start fail'
                 endif
             endif
-        else
-            let out = system(a:command)
+            let job_command = [&shell, &shellcmdflag]
+            let job_command += [command]
+            let g:{syntasticJob} = job_start(job_command, job_opt)
+            if job_status(g:{syntasticJob})=='fail'
+                throw 'job start fail'
+            endif
+            let out = ''
         endif
     catch
         let crashed = 1
-        call syntastic#log#error('exception running system(' . string(a:command) . '): ' . v:exception)
+        call syntastic#log#error('exception running system(' . string(command) . '): ' . v:exception)
         if syntastic#util#isRunningWindows()
             call syntastic#log#debug(g:_SYNTASTIC_DEBUG_CHECKERS, '$TMP = ' . string($TMP) . ', $TEMP = ' . string($TEMP))
         else
