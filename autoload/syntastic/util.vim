@@ -65,8 +65,8 @@ function! syntastic#util#system(command, ...) abort " {{{2
                 let job_opt.err_timeout = 50000
                 let job_opt.out_cb = function({key, job, message -> execute("
                             \ | if strlen(message)>0
-                                \ |     let g:{key} += [message]
-                                \ | endif
+                            \ |     let g:{key} += [message]
+                            \ | endif
                             \ ", "silent")}, [outKey])
                 let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
                 let job_opt.exit_cb = {job, status -> AsyncSyntasticCheck()}
