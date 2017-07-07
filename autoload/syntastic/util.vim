@@ -70,55 +70,25 @@ function! syntastic#util#system(command, ...) abort " {{{2
             let job_opt.timeout = 50000
             let job_opt.err_timeout = 50000
             let job_opt.out_cb = function({key, job, message -> execute("
-                        \ | if strlen(message)>0
-                        \ |     let g:{key} += [message]
-                        \ | endif
+                        \ if strlen(message)>0|
+                        \     let g:{key} += [message]|
+                        \ endif|
                         \ ", "silent")}, [outKey])
-            let job_opt.err_cb = {job, message -> execute("redraw \| echom ".string(message), "")}
+            let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
+
             if l:asyncStep==2
                 let job_opt.exit_cb = {job, status -> SyntasticCheck(3)}
             else
                 let job_opt.exit_cb = ''
             endif
 
-            if !exists('g:'.syntasticJob)
-                let g:{syntasticJob} = ''
-            else
-                let job_opt = {}
-                let job_opt.out_io = 'pipe'
-                let job_opt.in_io = 'null'
-                let job_opt.err_io = 'pipe'
-                let job_opt.err_mode = 'raw'
-                let job_opt.timeout = 50000
-                let job_opt.err_timeout = 50000
-                let job_opt.out_cb = function({key, job, message -> execute("
-                            \ | if strlen(message)>0
-                            \ |     let g:{key} += [message]
-                            \ | endif
-                            \ ", "silent")}, [outKey])
-                let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
-                let job_opt.exit_cb = {job, status -> AsyncSyntasticCheck()}
-
-                if !exists('g:'.syntasticJob)
-                    let g:{syntasticJob} = ''
-                else
-                    if job_status(g:{syntasticJob})=='run' "防止多任务冲突
-                        call job_stop(g:{syntasticJob})
-                    endif
-                endif
-                let job_command = [&shell, &shellcmdflag]
-                let job_command += [a:command]
-                let g:{syntasticJob} = job_start(job_command, job_opt)
-                if job_status(g:{syntasticJob})=='fail'
-                    throw 'job start fail'
-                endif
-            endif
             let job_command = [&shell, &shellcmdflag]
             let job_command += [command]
             let g:{syntasticJob} = job_start(job_command, job_opt)
             if job_status(g:{syntasticJob})=='fail'
                 throw 'job start fail'
             endif
+
             let out = ''
         endif
     catch
