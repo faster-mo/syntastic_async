@@ -28,7 +28,9 @@ function! syntastic#util#CygwinPath(path) abort " {{{2
     return substitute(syntastic#util#system('cygpath -m ' . syntastic#util#shescape(a:path)), "\n", '', 'g')
 endfunction " }}}2
 
-function! syntastic#util#system(command) abort " {{{2
+function! syntastic#util#system(command, ...) abort " {{{2
+    let async = exists('a:1') ? a:1 : 0
+
     let old_shell = &shell
     let old_lc_messages = $LC_MESSAGES
     let old_lc_all = $LC_ALL
@@ -68,30 +70,25 @@ function! syntastic#util#system(command) abort " {{{2
             let job_opt.timeout = 50000
             let job_opt.err_timeout = 50000
             let job_opt.out_cb = function({key, job, message -> execute("
-                        \ | if strlen(message)>0
-                        \ |     let g:{key} += [message]
-                        \ | endif
+                        \ if strlen(message)>0|
+                        \     let g:{key} += [message]|
+                        \ endif|
                         \ ", "silent")}, [outKey])
-            let job_opt.err_cb = {job, message -> execute("redraw \| echom ".string(message), "")}
+            let job_opt.err_cb = {job, message -> execute("echom ".string(message), "")}
+
             if l:asyncStep==2
                 let job_opt.exit_cb = {job, status -> SyntasticCheck(3)}
             else
                 let job_opt.exit_cb = ''
             endif
 
-            if !exists('g:'.syntasticJob)
-                let g:{syntasticJob} = ''
-            else
-                if job_status(g:{syntasticJob})=='run' "防止多任务冲突
-                    call job_stop(g:{syntasticJob})
-                endif
-            endif
             let job_command = [&shell, &shellcmdflag]
             let job_command += [command]
             let g:{syntasticJob} = job_start(job_command, job_opt)
             if job_status(g:{syntasticJob})=='fail'
                 throw 'job start fail'
             endif
+
             let out = ''
         endif
     catch

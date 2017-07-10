@@ -599,7 +599,7 @@ function! SyntasticMake(options) abort " {{{2
     endif
     " }}}3
 
-    let err_lines = split(syntastic#util#system(a:options['makeprg']), "\n", 1)
+    let err_lines = split(syntastic#util#system(a:options['makeprg'], 1), "\n", 1)
 
     " restore environment variables {{{3
     if len(env_save)
