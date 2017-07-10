@@ -38,10 +38,11 @@ function! SyntaxCheckers_php_phan_GetLocList() dict
                 \ 'args': a:args })
     let errorformat = '%f:%l\ Phan%m'
     let env = { }
-
+    let project = g:Project.'\..\'
     return SyntasticMake({
                 \ 'makeprg': makeprg,
                 \ 'errorformat': errorformat,
+                \ 'cwd': project,
                 \ 'env': env })
 endfunction
 
