@@ -33,16 +33,15 @@ endfunction
 function! SyntaxCheckers_php_phan_GetLocList() dict
 
     let a:args = "-k ".g:phpqa_phan_config
+    " let a:args = "-l . -k ".g:phpqa_phan_config." --include-analysis-file-list "
 
     let makeprg = self.makeprgBuild({
                 \ 'args': a:args })
     let errorformat = '%f:%l\ Phan%m'
     let env = { }
-    let project = g:Project.'\..\'
     return SyntasticMake({
                 \ 'makeprg': makeprg,
                 \ 'errorformat': errorformat,
-                \ 'cwd': project,
                 \ 'env': env })
 endfunction
 
