@@ -42,7 +42,7 @@ function! syntastic#util#system(command, ...) abort " {{{2
     if type(a:command)==type({})
         let l:asyncStep = has_key(a:command, 'asyncStep') ? a:command['asyncStep'] : 0
         let command = a:command['makeprg']
-    elseif
+    else
         let l:asyncStep = 0
         let command = a:command
     endif
